@@ -64,7 +64,7 @@ class FishCycleController extends Controller
             $fishCycle->feedings()->exists() ||
             $fishCycle->mortalities()->exists() ||
             $fishCycle->samplings()->exists() ||
-            $fishCycle->harvest()->exists()
+            $fishCycle->harvests()->exists()
         ) {
             return response()->json([
                 'success' => false,

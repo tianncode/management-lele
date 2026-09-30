@@ -15,10 +15,12 @@ class Sale extends Model
         'subtotal',
         'discount',
         'total',
+        'paid_amount',
         'payment_status',
         'notes',
         'created_by',
     ];
+
     protected function casts(): array
     {
         return [
@@ -26,6 +28,7 @@ class Sale extends Model
             'subtotal' => 'decimal:2',
             'discount' => 'decimal:2',
             'total' => 'decimal:2',
+            'paid_amount' => 'decimal:2',
         ];
     }
 

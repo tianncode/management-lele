@@ -7,11 +7,16 @@ use App\Http\Requests\StoreCashTransactionRequest;
 use App\Http\Requests\UpdateCashTransactionRequest;
 use App\Http\Resources\CashTransactionResource;
 use App\Models\CashTransaction;
+use App\Services\CashService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CashTransactionController extends Controller
 {
+    public function __construct(
+        protected CashService $cashService
+    ) {}
+
     public function index(): AnonymousResourceCollection
     {
         $transactions = CashTransaction::query()
@@ -23,16 +28,51 @@ class CashTransactionController extends Controller
         );
     }
 
+    public function balance(): JsonResponse
+    {
+        $income = (float) CashTransaction::query()
+            ->where('type', 'in')
+            ->sum('amount');
+
+        $expense = (float) CashTransaction::query()
+            ->where('type', 'out')
+            ->sum('amount');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'income' => $income,
+                'expense' => $expense,
+                'balance' => $income - $expense,
+            ],
+        ]);
+    }
+
     public function store(
         StoreCashTransactionRequest $request
-    ): CashTransactionResource {
-        $transaction = CashTransaction::create(
-            $request->validated()
-        );
+    ): JsonResponse {
+        $data = $request->validated();
 
-        return new CashTransactionResource(
-            $transaction
-        );
+        $transaction = $data['type'] === 'in'
+            ? $this->cashService->income(
+                amount: (float) $data['amount'],
+                category: $data['category'],
+                description: $data['description'],
+                userId: $request->user()?->id,
+                transactionDate: $data['transaction_date']
+            )
+            : $this->cashService->expense(
+                amount: (float) $data['amount'],
+                category: $data['category'],
+                description: $data['description'],
+                userId: $request->user()?->id,
+                transactionDate: $data['transaction_date']
+            );
+
+        return response()->json([
+            'success' => true,
+            'data' => new CashTransactionResource($transaction),
+        ], 201);
     }
 
     public function show(
@@ -46,24 +86,19 @@ class CashTransactionController extends Controller
     public function update(
         UpdateCashTransactionRequest $request,
         CashTransaction $cashTransaction
-    ): CashTransactionResource {
-        $cashTransaction->update(
-            $request->validated()
-        );
-
-        return new CashTransactionResource(
-            $cashTransaction->refresh()
-        );
+    ): JsonResponse {
+        return response()->json([
+            'success' => false,
+            'message' => 'Update transaksi kas dinonaktifkan. Koreksi transaksi harus dilakukan melalui transaksi sumber.',
+        ], 422);
     }
 
     public function destroy(
         CashTransaction $cashTransaction
     ): JsonResponse {
-        $cashTransaction->delete();
-
         return response()->json([
-            'success' => true,
-            'message' => 'Transaksi kas berhasil dihapus.',
-        ]);
+            'success' => false,
+            'message' => 'Penghapusan transaksi kas dinonaktifkan. Hapus atau koreksi transaksi melalui transaksi sumber.',
+        ], 422);
     }
 }

@@ -4,67 +4,64 @@ namespace App\Services;
 
 use App\Models\Feeding;
 use App\Models\Product;
-use App\Models\StockMovement;
 use Illuminate\Support\Facades\DB;
-use RuntimeException;
 
 class FeedingService
 {
-    public function create(array $data): Feeding
-    {
-        return DB::transaction(function () use ($data) {
+    public function __construct(
+        protected StockService $stockService
+    ) {}
+
+    public function create(
+        array $data,
+        ?int $userId = null
+    ): Feeding {
+        return DB::transaction(function () use (
+            $data,
+            $userId
+        ) {
             $product = Product::query()
-                ->lockForUpdate()
                 ->findOrFail($data['product_id']);
 
             $quantity = (float) $data['quantity'];
             $unitPrice = (float) $data['unit_price'];
-            $totalCost = $quantity * $unitPrice;
 
-            if ((float) $product->current_stock < $quantity) {
-                throw new RuntimeException(
-                    "Stok {$product->name} tidak mencukupi. " .
-                        "Stok tersedia: {$product->current_stock} {$product->unit}."
-                );
-            }
+            $totalCost = $quantity * $unitPrice;
 
             /*
              * Simpan penggunaan pakan.
              */
             $feeding = Feeding::create([
                 'fish_cycle_id' => $data['fish_cycle_id'],
-                'product_id' => $data['product_id'],
+                'product_id' => $product->id,
                 'feeding_date' => $data['feeding_date'],
                 'feeding_time' => $data['feeding_time'] ?? null,
                 'quantity' => $quantity,
                 'unit_price' => $unitPrice,
                 'total_cost' => $totalCost,
                 'notes' => $data['notes'] ?? null,
+                'created_by' => $userId,
             ]);
 
             /*
-             * Kurangi stok produk.
+             * Kurangi stok melalui StockService.
+             *
+             * StockService bertanggung jawab terhadap:
+             * - lock stok
+             * - validasi stok
+             * - update current_stock
+             * - pencatatan stock movement
              */
-            $product->decrement(
-                'current_stock',
-                $quantity
-            );
-
-            /*
-             * Catat pergerakan stok.
-             */
-            StockMovement::create([
-                'product_id' => $product->id,
-                'type' => 'out',
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'total_value' => $totalCost,
-                'reference_type' => Feeding::class,
-                'reference_id' => $feeding->id,
-                'movement_date' => $data['feeding_date'],
-                'notes' => 'Pemakaian pakan untuk siklus ' .
+            $this->stockService->decrease(
+                product: $product,
+                quantity: $quantity,
+                unitPrice: $unitPrice,
+                reference: $feeding,
+                notes: 'Pemakaian pakan untuk siklus ' .
                     $feeding->fishCycle->code,
-            ]);
+                userId: $userId,
+                movementDate: $data['feeding_date']
+            );
 
             return $feeding->load([
                 'fishCycle',

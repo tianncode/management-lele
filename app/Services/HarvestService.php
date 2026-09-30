@@ -23,7 +23,7 @@ class HarvestService
                 ->sum('quantity');
 
             $totalHarvested = (int) $cycle
-                ->harvest()
+                ->harvests()
                 ->sum('total_fish');
 
             $availableFish = max(

@@ -55,6 +55,12 @@ class UpdatePurchaseRequest extends FormRequest
                 ]),
             ],
 
+            'paid_amount' => [
+                'required',
+                'numeric',
+                'gte:0',
+            ],
+
             'notes' => [
                 'nullable',
                 'string',

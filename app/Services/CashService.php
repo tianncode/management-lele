@@ -14,7 +14,8 @@ class CashService
         string $category,
         string $description,
         ?Model $reference = null,
-        ?int $userId = null
+        ?int $userId = null,
+        ?string $transactionDate = null
     ): CashTransaction {
         return $this->create(
             'in',
@@ -22,7 +23,8 @@ class CashService
             $category,
             $description,
             $reference,
-            $userId
+            $userId,
+            $transactionDate
         );
     }
 
@@ -31,7 +33,8 @@ class CashService
         string $category,
         string $description,
         ?Model $reference = null,
-        ?int $userId = null
+        ?int $userId = null,
+        ?string $transactionDate = null
     ): CashTransaction {
         return $this->create(
             'out',
@@ -39,7 +42,8 @@ class CashService
             $category,
             $description,
             $reference,
-            $userId
+            $userId,
+            $transactionDate
         );
     }
 
@@ -49,7 +53,8 @@ class CashService
         string $category,
         string $description,
         ?Model $reference,
-        ?int $userId
+        ?int $userId,
+        ?string $transactionDate
     ): CashTransaction {
         if ($amount <= 0) {
             throw new InvalidArgumentException(
@@ -69,14 +74,22 @@ class CashService
             $category,
             $description,
             $reference,
-            $userId
+            $userId,
+            $transactionDate
         ) {
             return CashTransaction::create([
-                'transaction_date' => now()->toDateString(),
+                'transaction_date' =>
+                $transactionDate ?? now()->toDateString(),
+
                 'type' => $type,
                 'category' => $category,
-                'reference_type' => $reference?->getMorphClass(),
-                'reference_id' => $reference?->getKey(),
+
+                'reference_type' =>
+                $reference?->getMorphClass(),
+
+                'reference_id' =>
+                $reference?->getKey(),
+
                 'description' => $description,
                 'amount' => $amount,
                 'created_by' => $userId,

@@ -42,6 +42,8 @@ class PurchaseResource extends JsonResource
                 $this->whenLoaded('items')
             ),
 
+            'paid_amount' => (float) $this->paid_amount,
+
             'created_at' =>
             $this->created_at?->toISOString(),
 

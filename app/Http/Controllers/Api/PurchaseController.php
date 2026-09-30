@@ -34,7 +34,8 @@ class PurchaseController extends Controller
         StorePurchaseRequest $request
     ): PurchaseResource {
         $purchase = $this->purchaseService->create(
-            $request->validated()
+            $request->validated(),
+            $request->user()?->id
         );
 
         return new PurchaseResource($purchase);

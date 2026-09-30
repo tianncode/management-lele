@@ -7,10 +7,16 @@ use App\Http\Requests\StoreOtherIncomeRequest;
 use App\Http\Requests\UpdateOtherIncomeRequest;
 use App\Http\Resources\OtherIncomeResource;
 use App\Models\OtherIncome;
+use App\Services\OtherIncomeService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class OtherIncomeController extends Controller
 {
+    public function __construct(
+        protected OtherIncomeService $otherIncomeService
+    ) {}
+
     public function index(): AnonymousResourceCollection
     {
         $incomes = OtherIncome::query()
@@ -23,8 +29,9 @@ class OtherIncomeController extends Controller
     public function store(
         StoreOtherIncomeRequest $request
     ): OtherIncomeResource {
-        $income = OtherIncome::create(
-            $request->validated()
+        $income = $this->otherIncomeService->create(
+            $request->validated(),
+            $request->user()?->id
         );
 
         return new OtherIncomeResource($income);
@@ -40,19 +47,18 @@ class OtherIncomeController extends Controller
         UpdateOtherIncomeRequest $request,
         OtherIncome $otherIncome
     ): OtherIncomeResource {
-        $otherIncome->update(
+        $income = $this->otherIncomeService->update(
+            $otherIncome,
             $request->validated()
         );
 
-        return new OtherIncomeResource(
-            $otherIncome->refresh()
-        );
+        return new OtherIncomeResource($income);
     }
 
     public function destroy(
         OtherIncome $otherIncome
-    ) {
-        $otherIncome->delete();
+    ): JsonResponse {
+        $this->otherIncomeService->delete($otherIncome);
 
         return response()->json([
             'success' => true,

@@ -23,7 +23,7 @@ class StockMovement extends Model
     protected function casts(): array
     {
         return [
-            'quantity' => 'decimal:2',
+            'quantity' => 'decimal:3',
             'unit_price' => 'decimal:2',
             'total_value' => 'decimal:2',
             'movement_date' => 'date',

@@ -40,13 +40,10 @@ class UpdateSaleRequest extends FormRequest
                 'gte:0',
             ],
 
-            'payment_status' => [
+            'paid_amount' => [
                 'required',
-                Rule::in([
-                    'unpaid',
-                    'partial',
-                    'paid',
-                ]),
+                'numeric',
+                'gte:0',
             ],
 
             'notes' => [

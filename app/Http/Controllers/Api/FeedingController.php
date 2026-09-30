@@ -34,7 +34,8 @@ class FeedingController extends Controller
         StoreFeedingRequest $request
     ): FeedingResource {
         $feeding = $this->feedingService->create(
-            $request->validated()
+            $request->validated(),
+            $request->user()?->id
         );
 
         return new FeedingResource($feeding);

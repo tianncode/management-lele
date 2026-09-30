@@ -16,7 +16,8 @@ class StockService
         ?float $unitPrice = null,
         ?Model $reference = null,
         ?string $notes = null,
-        ?int $userId = null
+        ?int $userId = null,
+        ?string $movementDate = null
     ): StockMovement {
         if ($quantity <= 0) {
             throw new InvalidArgumentException(
@@ -30,8 +31,13 @@ class StockService
             $unitPrice,
             $reference,
             $notes,
-            $userId
+            $userId,
+            $movementDate
         ) {
+            $product = Product::query()
+                ->lockForUpdate()
+                ->findOrFail($product->id);
+
             $movement = StockMovement::create([
                 'product_id' => $product->id,
                 'type' => 'in',
@@ -42,7 +48,7 @@ class StockService
                     : null,
                 'reference_type' => $reference?->getMorphClass(),
                 'reference_id' => $reference?->getKey(),
-                'movement_date' => now()->toDateString(),
+                'movement_date' => $movementDate ?? now()->toDateString(),
                 'notes' => $notes,
                 'created_by' => $userId,
             ]);
@@ -59,17 +65,12 @@ class StockService
         ?float $unitPrice = null,
         ?Model $reference = null,
         ?string $notes = null,
-        ?int $userId = null
+        ?int $userId = null,
+        ?string $movementDate = null
     ): StockMovement {
         if ($quantity <= 0) {
             throw new InvalidArgumentException(
                 'Quantity harus lebih besar dari 0.'
-            );
-        }
-
-        if ($product->current_stock < $quantity) {
-            throw new InvalidArgumentException(
-                "Stok {$product->name} tidak mencukupi."
             );
         }
 
@@ -79,8 +80,20 @@ class StockService
             $unitPrice,
             $reference,
             $notes,
-            $userId
+            $userId,
+            $movementDate
         ) {
+            $product = Product::query()
+                ->lockForUpdate()
+                ->findOrFail($product->id);
+
+            if ((float) $product->current_stock < $quantity) {
+                throw new InvalidArgumentException(
+                    "Stok {$product->name} tidak mencukupi. " .
+                        "Stok tersedia: {$product->current_stock} {$product->unit}."
+                );
+            }
+
             $movement = StockMovement::create([
                 'product_id' => $product->id,
                 'type' => 'out',
@@ -91,7 +104,7 @@ class StockService
                     : null,
                 'reference_type' => $reference?->getMorphClass(),
                 'reference_id' => $reference?->getKey(),
-                'movement_date' => now()->toDateString(),
+                'movement_date' => $movementDate ?? now()->toDateString(),
                 'notes' => $notes,
                 'created_by' => $userId,
             ]);
@@ -106,7 +119,8 @@ class StockService
         Product $product,
         float $quantity,
         ?string $notes = null,
-        ?int $userId = null
+        ?int $userId = null,
+        ?string $movementDate = null
     ): StockMovement {
         if ($quantity == 0) {
             throw new InvalidArgumentException(
@@ -118,9 +132,14 @@ class StockService
             $product,
             $quantity,
             $notes,
-            $userId
+            $userId,
+            $movementDate
         ) {
-            $newStock = $product->current_stock + $quantity;
+            $product = Product::query()
+                ->lockForUpdate()
+                ->findOrFail($product->id);
+
+            $newStock = (float) $product->current_stock + $quantity;
 
             if ($newStock < 0) {
                 throw new InvalidArgumentException(
@@ -131,12 +150,12 @@ class StockService
             $movement = StockMovement::create([
                 'product_id' => $product->id,
                 'type' => 'adjustment',
-                'quantity' => $quantity,
+                'quantity' => abs($quantity),
                 'unit_price' => null,
                 'total_value' => null,
                 'reference_type' => null,
                 'reference_id' => null,
-                'movement_date' => now()->toDateString(),
+                'movement_date' => $movementDate ?? now()->toDateString(),
                 'notes' => $notes,
                 'created_by' => $userId,
             ]);

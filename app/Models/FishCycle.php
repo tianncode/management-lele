@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
-use App\Models\Pond;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FishCycle extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'pond_id',
         'seed_product_id',
@@ -21,7 +23,6 @@ class FishCycle extends Model
         'status',
         'notes',
     ];
-
 
     protected function casts(): array
     {

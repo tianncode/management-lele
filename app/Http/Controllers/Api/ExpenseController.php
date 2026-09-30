@@ -6,12 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Requests\UpdateExpenseRequest;
 use App\Http\Resources\ExpenseResource;
+use App\Services\ExpenseService;
 use App\Models\Expense;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class ExpenseController extends Controller
 {
+
+    public function __construct(
+        protected ExpenseService $expenseService
+    ) {}
+
     public function index(): AnonymousResourceCollection
     {
         $expenses = Expense::query()
@@ -25,8 +31,9 @@ class ExpenseController extends Controller
     public function store(
         StoreExpenseRequest $request
     ): ExpenseResource {
-        $expense = Expense::create(
-            $request->validated()
+        $expense = $this->expenseService->create(
+            $request->validated(),
+            $request->user()?->id
         );
 
         $expense->load('category');

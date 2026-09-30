@@ -16,6 +16,7 @@ class Purchase extends Model
         'discount',
         'additional_cost',
         'total',
+        'paid_amount',
         'payment_status',
         'notes',
         'created_by',
@@ -29,8 +30,10 @@ class Purchase extends Model
             'discount' => 'decimal:2',
             'additional_cost' => 'decimal:2',
             'total' => 'decimal:2',
+            'paid_amount' => 'decimal:2',
         ];
     }
+
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
