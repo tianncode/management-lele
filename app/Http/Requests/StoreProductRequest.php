@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class UpdateProductRequest extends FormRequest
+class StoreProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,12 +13,9 @@ class UpdateProductRequest extends FormRequest
 
     public function rules(): array
     {
-        $productId = $this->route('product')?->id;
-
         return [
             'category_id' => [
                 'required',
-                'integer',
                 'exists:product_categories,id',
             ],
 
@@ -27,35 +23,22 @@ class UpdateProductRequest extends FormRequest
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('products', 'code')
-                    ->ignore($productId),
+                'unique:products,code',
             ],
 
             'name' => [
                 'required',
                 'string',
-                'max:150',
-            ],
-
-            'item_type' => [
-                'required',
-                'string',
-                'max:50',
+                'max:255',
             ],
 
             'unit' => [
                 'required',
                 'string',
-                'max:20',
+                'max:30',
             ],
 
-            'purchase_price' => [
-                'nullable',
-                'numeric',
-                'min:0',
-            ],
-
-            'selling_price' => [
+            'current_stock' => [
                 'nullable',
                 'numeric',
                 'min:0',
@@ -67,7 +50,7 @@ class UpdateProductRequest extends FormRequest
                 'min:0',
             ],
 
-            'current_stock' => [
+            'average_price' => [
                 'nullable',
                 'numeric',
                 'min:0',
@@ -75,11 +58,6 @@ class UpdateProductRequest extends FormRequest
 
             'is_active' => [
                 'boolean',
-            ],
-
-            'description' => [
-                'nullable',
-                'string',
             ],
         ];
     }

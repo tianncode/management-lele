@@ -22,7 +22,7 @@ class SamplingService
                 ->sum('quantity');
 
             $totalHarvested = (int) $cycle
-                ->harvest()
+                ->harvests()
                 ->sum('quantity');
 
             $estimatedPopulation = max(

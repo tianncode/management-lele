@@ -22,6 +22,7 @@ class PaymentController extends Controller
         $sale = $this->paymentService->paySale(
             sale: $sale,
             amount: (float) $request->validated('amount'),
+            userId: auth()->id(),
             paymentDate: $request->validated('payment_date')
         );
 
@@ -49,6 +50,7 @@ class PaymentController extends Controller
         $purchase = $this->paymentService->payPurchase(
             purchase: $purchase,
             amount: (float) $request->validated('amount'),
+            userId: auth()->id(),
             paymentDate: $request->validated('payment_date')
         );
 

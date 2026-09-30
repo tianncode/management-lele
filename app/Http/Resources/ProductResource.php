@@ -11,34 +11,16 @@ class ProductResource extends JsonResource
     {
         return [
             'id' => $this->id,
-
-            'category' => $this->whenLoaded(
-                'category',
-                fn() => [
-                    'id' => $this->category->id,
-                    'name' => $this->category->name,
-                ]
-            ),
-
+            'category_id' => $this->category_id,
             'code' => $this->code,
             'name' => $this->name,
-            'item_type' => $this->item_type,
             'unit' => $this->unit,
-
-            'purchase_price' => (float) $this->purchase_price,
-            'selling_price' => (float) $this->selling_price,
-
-            'stock' => [
-                'current' => (float) $this->current_stock,
-                'minimum' => (float) $this->minimum_stock,
-                'is_low' => $this->current_stock <= $this->minimum_stock,
-            ],
-
-            'is_active' => (bool) $this->is_active,
-            'description' => $this->description,
-
-            'created_at' => $this->created_at?->toISOString(),
-            'updated_at' => $this->updated_at?->toISOString(),
+            'current_stock' => $this->current_stock,
+            'minimum_stock' => $this->minimum_stock,
+            'average_price' => $this->average_price,
+            'is_active' => $this->is_active,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

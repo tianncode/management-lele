@@ -33,7 +33,8 @@ return new class extends Migration
             $table->enum('status', [
                 'planned',
                 'active',
-                'harvested',
+                'harvest',
+                'completed',
                 'cancelled',
             ])->default('planned');
 

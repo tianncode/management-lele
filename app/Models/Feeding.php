@@ -2,21 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Feeding extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'fish_cycle_id',
         'product_id',
         'feeding_date',
+        'feeding_time',
         'quantity',
         'unit_price',
         'total_cost',
-        'feeding_time',
+        'method',
         'notes',
-        'created_by',
     ];
 
     protected function casts(): array
@@ -26,7 +29,6 @@ class Feeding extends Model
             'quantity' => 'decimal:2',
             'unit_price' => 'decimal:2',
             'total_cost' => 'decimal:2',
-            'feeding_time' => 'datetime:H:i',
         ];
     }
 
@@ -38,10 +40,5 @@ class Feeding extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
-    }
-
-    public function creator(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'created_by');
     }
 }
